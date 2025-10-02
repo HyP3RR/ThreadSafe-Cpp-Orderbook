@@ -1,0 +1,46 @@
+#include "order.hpp"
+#include <map>
+
+
+// high level view of orderbook (price, total quantity)
+// this can be sent as snapshot stream
+
+//struct LevelInfo {
+//  Price price_;
+// Quantity quantity_;
+//};
+
+using LevelInfos = std::map<Price, Quantity>; //very simple to handle
+
+// for vector, need to do O(n) search for updates
+// can say action happens on top of orderbook to optimise
+// so we can keep it sorted with aggresive area being first
+class OrderbookLevelInfo {
+public:
+  OrderbookLevelInfo(const LevelInfos &bids, const LevelInfos &asks)
+      : bids_(bids), asks_(asks) {}
+
+  const LevelInfos& GetBids() { return bids_; }
+  const LevelInfos& GetAsks() {return asks_;}
+private:
+  LevelInfos bids_;
+  LevelInfos asks_;  
+
+};
+
+
+class OrderBook {
+private:
+  struct OrderEntry {
+    OrderPointer order_{nullptr};
+    OrderPointers::iterator location_;
+    };
+
+  std::map<Price, OrderPointers, std::greater<Price>> bids_;
+  std::map<Price, OrderPointers, std::less<Price>> asks_;
+
+  std::map<OrderId, OrderEntry> orders_;
+
+public:
+  
+};
