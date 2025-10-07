@@ -1,26 +1,11 @@
-#include <cstdint>
+#pragma once
+#include "constants.hpp"
 #include <memory>
 #include <list>
 #include <stdexcept>
-#include <vector>
 
 
-//support for add, modify and cancel too
 
-enum class OrderType {
-  GoodTillCancel,
-  FillAndKill,
-  MarketOrder
-  };
-
-enum class Side {
-  Buy,
-  Sell
-};
-
-using Quantity = std::uint32_t;
-using Price = std::int32_t;
-using OrderId = std::uint64_t;
 
 
 
@@ -33,14 +18,20 @@ class Order {
 public:
   Order(OrderId orderId, Price price, Quantity quantity, Side side, OrderType ordertype) : orderId_(orderId), price_(price) , initialQuantity_(quantity), remainingQuantity_(initialQuantity_), side_(side), orderType_(ordertype){}
 
+  //TODO: find appropriate default Price replacement (Marketorder)  
+  Order(OrderId orderId, Quantity quantity, Side side) : Order(orderId, Constants::InvalidPrice, quantity, side, OrderType::MarketOrder){}
+  
       OrderId GetOrderId() const   {return orderId_;}
       Price GetPrice() const { return price_; }
       Side GetSide() const { return side_; }
-      Quantity GetQuantity() const { return remainingQuantity_; }
-      
+  Quantity GetInitialQuantity() const {return initialQuantity_;}
+  Quantity GetRemainingQuantity() const { return remainingQuantity_; }
+  OrderType GetOrderType() const {return orderType_;}
+  bool IsFilled() const {return remainingQuantity_ == 0;}
   void Fill(const Quantity quantity) {
     if (quantity > remainingQuantity_) {
       throw std::logic_error("fill quantity > remaining quantity");
+     
     }
     remainingQuantity_ -= quantity;
     }
@@ -93,23 +84,4 @@ public:
 };
 
 
-struct TradeInfo {
-  OrderId orderId_;
-  Price price_;
-  Quantity quantity_;
-};
 
-class Trade {
-public:
-  Trade(const TradeInfo& bidTrade, const TradeInfo& askTrade) : bidTrade_(bidTrade) , askTrade_(askTrade) {}
-
-  const TradeInfo &GetBidTrade() { return bidTrade_; }
-  const TradeInfo &GetAskTrade() {return askTrade_;}
-
-private:
-  TradeInfo bidTrade_;
-  TradeInfo askTrade_;
-  
-};
-
-using Trades = std::vector<Trade> ;
