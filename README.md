@@ -13,6 +13,7 @@ The project focuses on core trading system mechanics such as order matching, exe
 
 ---
 ## Directory Structure
+```bash
 src/
 ├── main.cpp # Entry point for the application
 ├── orderbook.cpp # Core orderbook logic
@@ -21,6 +22,7 @@ src/
 ├── order.hpp # Header file for order
 ├── trades.cpp # Trade execution logic
 └── trades.hpp # Header file for trades
+```
 
 ---
 ## ⚙️ Architecture
