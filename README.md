@@ -12,7 +12,17 @@ The project focuses on core trading system mechanics such as order matching, exe
 - **Execution Handling**: Robust handling of add, cancel, and modify operations.
 
 ---
+## Directory Structure
+src/
+├── main.cpp # Entry point for the application
+├── orderbook.cpp # Core orderbook logic
+├── orderbook.hpp # Header file for orderbook
+├── order.cpp # Order-related functionalities
+├── order.hpp # Header file for order
+├── trades.cpp # Trade execution logic
+└── trades.hpp # Header file for trades
 
+---
 ## ⚙️ Architecture
 - **Orderbook Core**: Maintains bid/ask levels with efficient lookup and matching.
 - **Writer Thread**: Processes incoming order requests sequentially, avoiding race conditions.
@@ -27,10 +37,18 @@ The project focuses on core trading system mechanics such as order matching, exe
 
 ---
 
-## 📖 Usage
-```bash
+## 🔧 Building the Project
 
-# Clone repository
+
+### Clone the repository
+```bash
 git clone https://github.com/yourusername/orderbook.git
 cd orderbook
+```
 
+### Build and execute
+```bash
+cd src
+make
+./main
+```

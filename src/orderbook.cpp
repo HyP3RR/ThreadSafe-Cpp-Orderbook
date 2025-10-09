@@ -1,58 +1,21 @@
-#include "order.hpp"
-#include "trades.hpp"
-#include <cstddef>
-#include <map>
-#include <stdexcept>
-
-/*
+#include "orderbook.hpp"
 
 
-  LevelInfo -> for snapshot stream, create on demand in orderbook member
-function
- Orderbook -> Core Data structure with matching logic.
- no self match prevention.
- before and after each func call, the invariant of no pending matches is true.
-*/
-
-
-
-struct LevelInfo {
-  Price price_;
-  Quantity quantity_;
-  std::size_t orderCount_;
-};
-
-using LevelInfos =
-    std::vector<LevelInfo>; // create LevelInfos on demand in orderbook
-
-
-class OrderbookLevelInfos {
-public:
-  OrderbookLevelInfos(const LevelInfos &bids, const LevelInfos &asks)
+//Level Info methods
+OrderbookLevelInfos::OrderbookLevelInfos(const LevelInfos &bids, const LevelInfos &asks)
       : bids_(bids), asks_(asks) {}
 
-  const LevelInfos& GetBids() { return bids_; }
-  const LevelInfos& GetAsks() {return asks_;}
-private:
-  LevelInfos bids_;
-  LevelInfos asks_;
-};
+
+const LevelInfos& OrderbookLevelInfos::GetBids() { return bids_; }
+const LevelInfos&  OrderbookLevelInfos::GetAsks() {return asks_; }
 
 
-class OrderBook {
-private:
-  struct OrderEntry {
-    OrderPointer order_{nullptr};
-    OrderPointers::iterator location_;
-    };
 
-  std::map<Price, OrderPointers, std::greater<Price>> bids_;
-  std::map<Price, OrderPointers, std::less<Price>> asks_;
 
-  std::map<OrderId, OrderEntry> orders_;
+//Orderbook Methods
 
-  bool CanMatch(Side side, Price price) const {
-    // if it can match
+bool OrderBook::CanMatch(Side side, Price price) const {
+ // if it can match
     if (side == Side::Sell) {
       if (bids_.empty())
         return false;
@@ -64,11 +27,11 @@ private:
         return false;
       auto &[bestAsk, _] = *asks_.begin();
       return price <= bestAsk;    
-    }
+    }  
+}
 
-    }
-    Trades MatchOrder() {
-      // loop and keep matching order. return each trade done
+Trades OrderBook::MatchOrder() {
+ // loop and keep matching order. return each trade done
       Trades trades;
       trades.reserve(orders_.size());
       
@@ -123,10 +86,11 @@ private:
         }
       
       return trades;
-    }
-    
-public:
-  Trades AddOrder(OrderPointer order) {
+}
+
+
+
+Trades OrderBook::AddOrder(OrderPointer order) {
     
     if (orders_.count(order->GetOrderId()))
       return {}; // sanity check
@@ -147,23 +111,65 @@ public:
     }
     
      orders_.insert({order->GetOrderId() , OrderEntry{order, iterator}});
-    return MatchOrder();     
-  }
+    return MatchOrder();
+}
 
-  void CancelOrder(OrderId orderId) {}
 
-  Trades ModifyOrder(OrderModify order) {
-    //cancel + add logic, by converting OrderModify to pointer etc.
+void OrderBook::CancelOrder(OrderId orderId) {
+    if (!orders_.count(orderId))
+      return;
+
+    const auto &[order, orderIterator] = orders_[orderId];
+    auto price = order->GetPrice();
+    if (order->GetSide() == Side::Sell) {
+      auto &list = asks_.at(price);
+      list.erase(orderIterator);
+      if(list.empty()) asks_.erase(price);
+    } else {
+      auto &list = bids_.at(price);
+        list.erase(orderIterator );
+	if(list.empty()) bids_.erase(price);
     }
-    std::size_t Size() const { // size of orders_
-    }
-    OrderbookLevelInfos GetOrderInfos() const {
-      // snapshot of orderbook returned, create and send.
-      // either create on the fly here and send
-      // or maintain the LevelInfo and make both synchronous
-// can make it on the fly in a vector to keep it simple.       
 
+    //note, no cleanup for orders_ for now.
+}
+
+Trades OrderBook::ModifyOrder(OrderModify order) {
+    // cancel + add logic, by converting OrderModify to pointer etc.    
+    if (!orders_.count(order.GetOrderId()))
+      return {};
+    const auto &[existingOrder, _] = orders_.at(order.GetOrderId());
+    CancelOrder(order.GetOrderId()); //only removes from orderbook
+    return AddOrder(order.ToOrderPointer(existingOrder->GetOrderType()));  
+}
+
+std::size_t OrderBook::Size() const {
+   // size of orders_
+   return orders_.size();
+}
+
+OrderbookLevelInfos OrderBook::GetOrderInfos() const {
+ // create and return snapshot of all levels of a orderbook
+      // can return K levels of orderbook to keep it simple.
       
+      LevelInfos asksSnapshot;
+      LevelInfos bidsSnapshot;
+      asksSnapshot.reserve(this->Size());
+      bidsSnapshot.reserve(this->Size());
+
+      auto CreateLevelInfo = [](Price price, const OrderPointers &orders) {
+        Quantity levelQuantity = 0;
+        for (auto &order : orders) {
+          levelQuantity += order->GetRemainingQuantity();
+        }
+        return LevelInfo{price, levelQuantity, orders.size()};
+      };
+      
+      for (auto &[price, orders] : asks_) {
+        asksSnapshot.emplace_back(CreateLevelInfo(price, orders));
       }
-      
-};
+      for (auto &[price, orders] : bids_) {
+	bidsSnapshot.emplace_back(CreateLevelInfo(price, orders));
+      }
+      return OrderbookLevelInfos{bidsSnapshot, asksSnapshot};
+}
