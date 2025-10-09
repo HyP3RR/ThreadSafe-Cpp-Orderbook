@@ -15,13 +15,14 @@ The project focuses on core trading system mechanics such as order matching, exe
 ## Directory Structure
 ```bash
 src/
+├── constants.hpp #constants and typenames for orderbook data
 ├── main.cpp # Entry point for the application
 ├── orderbook.cpp # Core orderbook logic
 ├── orderbook.hpp # Header file for orderbook
-├── order.cpp # Order-related functionalities
-├── order.hpp # Header file for order
-├── trades.cpp # Trade execution logic
-└── trades.hpp # Header file for trades
+├── order.cpp # order API helper implementatioon
+├── order.hpp # Header file for order API
+├── trades.cpp # Trade info implementation
+└── trades.hpp # Header file for trades representation
 ```
 
 ---
