@@ -1,0 +1,68 @@
+#include "constants.hpp"
+#include "orderbook.hpp"
+#include <cstddef>
+#include <iomanip>
+#include <memory>
+#include <iostream>
+#include <ostream>
+
+OrderBook orderbook;
+
+void add_order(Price price, Quantity quantity, Side side) {
+  static int i = 0;
+  OrderPointer ptr = std::make_shared<Order>(i++, price, quantity, side,
+                                             OrderType::GoodTillCancel);
+  auto trades = orderbook.AddOrder(ptr);
+}
+
+
+
+
+void print_orderbook() {
+  auto book = orderbook.GetOrderInfos();
+  auto &bids = book.GetBids();
+  auto &asks = book.GetAsks();
+
+  const auto la = 30; //left align number
+  const auto ra = 20; //right align number
+  
+  std::cout << std::left;
+  std::cout << std::setw(la) << "Buy Price (Quantity)" << std::setw(ra) << "Sell Price (Quantity)" << "\n";
+  std::cout << std::string(la, '-') <<std::string(ra,'-') << "\n";
+
+  std::size_t levels = book.GetSize();
+  for (std::size_t i = 0; i < levels; i++) {
+    std::cout << std::setw(la);
+    std::ostringstream oss;
+    if (i < bids.size()) oss  <<bids[i].price_ <<" ( " << bids[i].quantity_ <<" ) ";
+    else oss <<"-";
+    std::cout << oss.str();
+
+    std::cout << std::setw(ra);
+    oss.str("");oss.clear(); //clear 
+    if (i < asks.size())
+      oss << asks[i].price_ << " ( " << asks[i].quantity_ << " ) ";
+    else oss <<"-";
+    std::cout <<oss.str() <<"\n";
+    }
+  
+  
+}
+
+Side buy = Side::Buy;
+Side sell = Side::Sell;
+
+int main() {
+  add_order(10, 10, buy);
+  add_order(9, 10, buy);
+  add_order(5, 10, buy);
+  add_order(7, 10, buy);
+  add_order(11, 10, sell);
+  add_order(12, 10, sell);
+  add_order(10, 10, sell);
+  add_order(9, 5, sell);
+  add_order(1,100,sell);  
+  print_orderbook();
+    
+
+}

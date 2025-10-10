@@ -1,9 +1,8 @@
 #pragma once
 #include "constants.hpp"
+#include <stdexcept>
 #include <memory>
 #include <list>
-#include <stdexcept>
-
 
 
 
@@ -16,10 +15,10 @@
 
 class Order {
 public:
-  Order(OrderId orderId, Price price, Quantity quantity, Side side, OrderType ordertype) : orderId_(orderId), price_(price) , initialQuantity_(quantity), remainingQuantity_(initialQuantity_), side_(side), orderType_(ordertype){}
+  Order(OrderId orderId, Price price, Quantity quantity, Side side, OrderType ordertype);
 
-  //TODO: find appropriate default Price replacement (Marketorder)  
-  Order(OrderId orderId, Quantity quantity, Side side) : Order(orderId, Constants::InvalidPrice, quantity, side, OrderType::MarketOrder){}
+  
+  Order(OrderId orderId, Quantity quantity, Side side); //MarketOrder case
   
       OrderId GetOrderId() const   {return orderId_;}
       Price GetPrice() const { return price_; }
@@ -61,8 +60,7 @@ using OrderPointers = std::list<OrderPointer>;
 
 class OrderModify {
 public:
-  OrderModify(OrderId orderId, Side side, Price price, Quantity quantity)
-      : orderId_(orderId), price_(price), side_(side), quantity_(quantity) {}
+  OrderModify(OrderId orderId, Side side, Price price, Quantity quantity);
       OrderId GetOrderId() const   {return orderId_;}
       Price GetPrice() const { return price_; }
       Side GetSide() const { return side_; }
@@ -70,11 +68,7 @@ public:
 
 
       
-  OrderPointer ToOrderPointer(OrderType type) const {
-    //works more like a cancel-replace, specify type and return the shared ptr to modified
-    //need to delete old one tho
-    return std::make_shared<Order>( GetOrderId(), GetPrice(), GetQuantity(),  GetSide(),type);
-      }
+  OrderPointer ToOrderPointer(OrderType type) const;
 
     private:
       OrderId orderId_;

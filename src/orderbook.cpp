@@ -1,4 +1,7 @@
 #include "orderbook.hpp"
+#include "order.hpp"
+#include <algorithm>
+#include <cstddef>
 
 
 //Level Info methods
@@ -9,7 +12,7 @@ OrderbookLevelInfos::OrderbookLevelInfos(const LevelInfos &bids, const LevelInfo
 const LevelInfos& OrderbookLevelInfos::GetBids() { return bids_; }
 const LevelInfos&  OrderbookLevelInfos::GetAsks() {return asks_; }
 
-
+std::size_t OrderbookLevelInfos::GetSize() const {return std::max(bids_.size(),asks_.size());}
 
 
 //Orderbook Methods
@@ -34,9 +37,9 @@ Trades OrderBook::MatchOrder() {
  // loop and keep matching order. return each trade done
       Trades trades;
       trades.reserve(orders_.size());
-      
-      while (true) {
-	 if (bids_.empty() || asks_.empty()) break;
+
+      while (true) {        
+	if (bids_.empty() || asks_.empty()) break;
         
        auto &[bidPrice, bidList] = *bids_.begin();
        auto &[askPrice, askList] = *asks_.begin();
@@ -74,22 +77,22 @@ Trades OrderBook::MatchOrder() {
 
       // cancel rest for FAK, guaranteed to be unique in the list (others
       // must've been matched due to the invariant).      
-      if (asks_.empty()) {
+      if (!asks_.empty()) {
         auto &[_, asks] = *asks_.begin();
         auto& order = asks.front();
         if(order->GetOrderType() == OrderType::FillAndKill) CancelOrder(order->GetOrderId());
         }
-      if (bids_.empty()) {
+      if (!bids_.empty()) {
         auto &[_, bids] = *bids_.begin();
         auto &order = bids.front();
         if(order->GetOrderType() == OrderType::FillAndKill) CancelOrder(order->GetOrderId());
         }
-      
+  
       return trades;
 }
 
 
-
+//public API
 Trades OrderBook::AddOrder(OrderPointer order) {
     
     if (orders_.count(order->GetOrderId()))
@@ -100,17 +103,22 @@ Trades OrderBook::AddOrder(OrderPointer order) {
       return {};
 
     OrderPointers::iterator iterator;
+
     if (order->GetSide() == Side::Sell) {
-      auto& orders = asks_[order->GetPrice()];
+      if(!asks_.count(order->GetPrice()))asks_.insert({order->GetPrice(),OrderPointers{}});
+      auto& orders = asks_.at(order->GetPrice());
       orders.push_back(order);
       iterator = std::next(orders.begin(), orders.size()-1);
-    } else {
-      auto &orders = bids_[order->GetPrice()];
+    }
+      
+    else {
+      if(!bids_.count(order->GetPrice()))bids_.insert({order->GetPrice(),OrderPointers{}});
+      auto &orders = bids_.at(order->GetPrice());
       orders.push_back(order);
       iterator = std::next(orders.begin(), orders.size() -1 );
     }
-    
-     orders_.insert({order->GetOrderId() , OrderEntry{order, iterator}});
+   
+    orders_.insert({order->GetOrderId() , OrderEntry{order, iterator}});
     return MatchOrder();
 }
 

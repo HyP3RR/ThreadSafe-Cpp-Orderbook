@@ -2,6 +2,7 @@
 #include "constants.hpp"
 #include "order.hpp"
 #include "trades.hpp"
+#include <algorithm>
 #include <cstddef>
 #include <map>
 
@@ -28,7 +29,7 @@ using LevelInfos =
 class OrderbookLevelInfos {
 public:
   OrderbookLevelInfos(const LevelInfos &bids, const LevelInfos &asks);
-
+  std::size_t GetSize() const;
   const LevelInfos& GetBids();
   const LevelInfos& GetAsks();
 private:
