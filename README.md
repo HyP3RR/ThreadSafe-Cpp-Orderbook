@@ -49,8 +49,11 @@ cd orderbook
 ```
 
 ### Build and execute
+
+Each test source file lives in `tests/file_name.cpp`. Compiled executables are placed in the `build/` folder.
+
+From the project root, run:
 ```bash
-cd src
-make
-./main
+make build/file_name
+./build/file_name
 ```
