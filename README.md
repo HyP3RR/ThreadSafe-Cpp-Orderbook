@@ -13,15 +13,24 @@ An ongoing implementation of a thread-safe orderbook in C++. The project focuses
 ---
 ## Directory Structure
 ```bash
-src/
-├── constants.hpp #constants and typenames for orderbook data
-├── main.cpp # Entry point for the application
-├── orderbook.cpp # Core orderbook logic
-├── orderbook.hpp # Header file for orderbook
-├── order.cpp # order API helper implementatioon
-├── order.hpp # Header file for order API
-├── trades.cpp # Trade info implementation
-└── trades.hpp # Header file for trades representation
+ThreadSafe-Cpp-Orderbook/
+├── Makefile                  # Build File
+├── README.md                 # Project documentation
+├── LICENSE                   # Project license
+├── include/                  # Header files
+│   ├── constants.hpp         # Basic changeable constants
+│   ├── helper.hpp            # helper functions declarations 
+│   ├── order.hpp             # Order class declaration
+│   ├── orderbook.hpp         # OrderBook class declaration 
+│   └── trades.hpp            # Client helper functions
+├── src/                      # Source files
+│   ├── helper.cpp            # Client helper functions
+│   ├── order.cpp             # Order class implementation
+│   ├── orderbook.cpp         # Orderbook class implementation
+└── tests/                    # Test scenarios
+    ├── test_scenario1.cpp    # Test scenario 1
+    ├── test_scenario2.cpp    # Test scenario 2
+    └── ...                   # Additional test scenarios
 ```
 
 ---
