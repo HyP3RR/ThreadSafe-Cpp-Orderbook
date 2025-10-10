@@ -1,7 +1,6 @@
 # Thread-Safe C++ Orderbook
 
-An ongoing implementation of a thread-safe orderbook in C++, inspired by learnings from my Alphagrep internship.  
-The project focuses on core trading system mechanics such as order matching, execution handling, and safe concurrent access.
+An ongoing implementation of a thread-safe orderbook in C++. The project focuses on core trading system mechanics such as order matching, execution handling, and safe concurrent access.
 
 ---
 
