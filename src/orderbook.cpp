@@ -1,4 +1,5 @@
 #include "orderbook.hpp"
+#include "constants.hpp"
 #include "order.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -29,7 +30,7 @@ bool OrderBook::CanMatch(Side side, Price price) const {
       if (asks_.empty())
         return false;
       auto &[bestAsk, _] = *asks_.begin();
-      return price <= bestAsk;    
+      return price >= bestAsk;    
     }  
 }
 
@@ -43,8 +44,11 @@ Trades OrderBook::MatchOrder() {
         
        auto &[bidPrice, bidList] = *bids_.begin();
        auto &[askPrice, askList] = *asks_.begin();
-       if (bidPrice < askPrice)
+       if (bidPrice != Constants::InvalidPrice &&
+           askPrice != Constants::InvalidPrice) {
+	 if (bidPrice < askPrice)
          break;
+         }
 
        while (bidList.size() && askList.size()) {
 	 auto &currentBid = bidList.front();
@@ -98,6 +102,21 @@ Trades OrderBook::AddOrder(OrderPointer order) {
     if (orders_.count(order->GetOrderId()))
       return {}; // sanity check
 
+
+    if (order->GetOrderType() == OrderType::MarketOrder) {
+      if (order->GetSide() == Side::Buy && asks_.size()) {
+        auto &[worstAsk, _] = *asks_.rbegin(); // worst price!, it'll later select the best/asked
+        // price anyway
+        order->ToGoodTillCancel(worstAsk);
+      } else if (order->GetSide() == Side::Sell && bids_.size()) {
+        auto &[worstBid, _] = *bids_.rbegin();
+        order->ToGoodTillCancel(worstBid);
+        
+      } else {
+	return {}; 
+        }
+      
+      }
     if (order->GetOrderType() == OrderType::FillAndKill &&
         !CanMatch(order->GetSide(), order->GetPrice()))
       return {};
@@ -110,7 +129,7 @@ Trades OrderBook::AddOrder(OrderPointer order) {
       orders.push_back(order);
       iterator = std::next(orders.begin(), orders.size()-1);
     }
-      
+       
     else {
       if(!bids_.count(order->GetPrice()))bids_.insert({order->GetPrice(),OrderPointers{}});
       auto &orders = bids_.at(order->GetPrice());

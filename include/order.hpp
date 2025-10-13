@@ -33,7 +33,16 @@ public:
      
     }
     remainingQuantity_ -= quantity;
+  }
+  void ToGoodTillCancel(Price setPrice) {
+    // set MARKET order price to worst price asked for!
+    // enables matching as the orderbook is initially in non-matched state
+    if (GetOrderType() != OrderType::MarketOrder) {
+      throw std::logic_error("Conversion supported only from GoodTillCancel");
     }
+    price_ = setPrice;
+    orderType_ = OrderType::GoodTillCancel;
+    }    
   
 private:
   OrderId orderId_;

@@ -14,7 +14,6 @@ enum class Side {
   Buy,
   Sell
 };
-
 using Quantity = std::uint32_t;
 using Price = std::int32_t;
 using OrderId = std::uint64_t;
