@@ -10,11 +10,19 @@
 OrderBook orderbook;
 OrderType type;
 
+void print_Trade(Trades trades) {
+  for (auto &trade : trades) {
+    trade.PrintTrade();
+    }
+}
+
+
 void add_order(Price price, Quantity quantity, Side side) {
   static int i = 0;
   OrderPointer ptr = std::make_shared<Order>(i++, price, quantity, side,
                                              type);
   auto trades = orderbook.AddOrder(ptr);
+  print_Trade(trades);
 }
 
 
@@ -23,7 +31,6 @@ void add_market(Quantity quantity, Side side) {
   OrderPointer ptr = std::make_shared<Order>(i++,  quantity, side);
   auto trades = orderbook.AddOrder(ptr);
 }
-
 
 
 

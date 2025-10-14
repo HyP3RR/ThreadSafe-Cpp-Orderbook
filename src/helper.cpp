@@ -10,7 +10,11 @@ void add_order(OrderBook &ob, Price price, Quantity quantity, Side side) {
 }
 
 
-
+void print_Trades(Trades trades) {
+  for (auto &trade : trades) {
+    trade.PrintTrade();
+    }
+}
 
 void print_orderbook(OrderBook &ob) {
   auto book = ob.GetOrderInfos();
