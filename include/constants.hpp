@@ -4,11 +4,9 @@
 
 //support for add, modify and cancel too
 
-enum class OrderType {
-  GoodTillCancel,
-  FillAndKill,
-  MarketOrder
-  };
+enum class OrderType { GoodTillCancel, FillAndKill, MarketOrder };
+
+enum class OrderCategory{NewOrder, ModifyOrder, CancelOrder}; //client API
 
 enum class Side {
   Buy,

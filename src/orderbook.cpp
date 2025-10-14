@@ -146,7 +146,7 @@ void OrderBook::CancelOrder(OrderId orderId) {
     if (!orders_.count(orderId))
       return;
 
-    const auto &[order, orderIterator] = orders_[orderId];
+    const auto &[order, orderIterator] = orders_.at(orderId);
     auto price = order->GetPrice();
     if (order->GetSide() == Side::Sell) {
       auto &list = asks_.at(price);
@@ -157,8 +157,7 @@ void OrderBook::CancelOrder(OrderId orderId) {
         list.erase(orderIterator );
 	if(list.empty()) bids_.erase(price);
     }
-
-    //note, no cleanup for orders_ for now.
+    orders_.erase(orderId); //free from both
 }
 
 Trades OrderBook::ModifyOrder(OrderModify order) {
@@ -166,8 +165,8 @@ Trades OrderBook::ModifyOrder(OrderModify order) {
     if (!orders_.count(order.GetOrderId()))
       return {};
     const auto &[existingOrder, _] = orders_.at(order.GetOrderId());
-    CancelOrder(order.GetOrderId()); //only removes from orderbook
-    return AddOrder(order.ToOrderPointer(existingOrder->GetOrderType()));  
+    CancelOrder(order.GetOrderId()); // removes from both, deallocated sharedptr
+    return AddOrder(order.ToOrderPointer(existingOrder->GetOrderType())); //new sharedptr, no dangle.
 }
 
 std::size_t OrderBook::Size() const {

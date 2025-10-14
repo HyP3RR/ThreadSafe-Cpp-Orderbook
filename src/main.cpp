@@ -1,4 +1,6 @@
+
 #include "constants.hpp"
+#include "order.hpp"
 #include "orderbook.hpp"
 #include <cstddef>
 #include <iomanip>
@@ -18,6 +20,7 @@ void print_Trade(Trades trades) {
 
 
 void add_order(Price price, Quantity quantity, Side side) {
+  //client thread adding to spsc queue
   static int i = 0;
   OrderPointer ptr = std::make_shared<Order>(i++, price, quantity, side,
                                              type);
@@ -32,8 +35,14 @@ void add_market(Quantity quantity, Side side) {
   auto trades = orderbook.AddOrder(ptr);
 }
 
+void cancel_order(OrderId orderId) {
+  orderbook.CancelOrder(orderId);  
+}
 
-
+void modify_order(OrderId orderId, Side side,Price new_price, Quantity new_quantity) {
+  OrderModify order{orderId, side,new_price, new_quantity};
+  return print_Trade(orderbook.ModifyOrder(order));
+}
 
 
 void print_orderbook() {
@@ -95,9 +104,7 @@ int main() {
   add_market(7,buy);
   // prints, 7 (1) , 5 (10) on buy
   // 12 (4) on sell!
-
-
-
-
+  modify_order(5, sell, 100, 4);
+  cancel_order(5);
    print_orderbook();
 }
