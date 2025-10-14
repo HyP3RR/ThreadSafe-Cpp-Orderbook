@@ -1,7 +1,7 @@
 #pragma once
 #include "constants.hpp"
 #include <vector>
-
+#include <iostream>
 
 struct TradeInfo {
   OrderId orderId_;
@@ -17,6 +17,14 @@ public:
   const TradeInfo &GetBidTrade() { return bidTrade_; }
   const TradeInfo &GetAskTrade() {return askTrade_;}
 
+  void PrintTrade() {
+    std::cout << "Trade: \n";
+    std::cout << "Buy: OrderID " << bidTrade_.orderId_
+              << " Price: " << bidTrade_.price_
+              << "  Qty: " << bidTrade_.quantity_ << "\n";
+    std::cout <<"Sell: OrderId " <<askTrade_.orderId_ <<" Price: " <<askTrade_.price_ <<" Qty: " <<askTrade_.quantity_ <<"\n"; 
+    }
+  
 private:
   TradeInfo bidTrade_;
   TradeInfo askTrade_;
