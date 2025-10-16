@@ -3,6 +3,7 @@
 #include "order.hpp"
 #include <algorithm>
 #include <cstddef>
+#include <stdexcept>
 
 
 //Level Info methods
@@ -102,7 +103,7 @@ Trades OrderBook::AddOrder(OrderPointer order) {
     if (orders_.count(order->GetOrderId()))
       return {}; // sanity check
 
-
+    
     if (order->GetOrderType() == OrderType::MarketOrder) {
       if (order->GetSide() == Side::Buy && asks_.size()) {
         auto &[worstAsk, _] = *asks_.rbegin(); // worst price!, it'll later select the best/asked
@@ -174,6 +175,35 @@ std::size_t OrderBook::Size() const {
    return orders_.size();
 }
 
+void OrderBook::ProcessClientOrder(ClientOrderPointer order) {
+                
+  switch (order->GetOrderCategory()) {
+  case OrderCategory::NewOrder: {
+    auto ptr = order->ClientToNewOrder();
+      
+    auto trades = AddOrder(ptr); // rvo
+    order->returnPromise(trades);
+    break;
+    }
+    case OrderCategory::ModifyOrder: {
+      auto trades =
+          ModifyOrder(OrderModify{order->GetOrderId(), order->GetSide(),
+                                  order->GetPrice(), order->GetQuantity()});
+      order->returnPromise(trades);
+      break;
+      }
+      case OrderCategory::CancelOrder: {
+        CancelOrder(order->GetOrderId());
+        order->returnPromise(Trades{});
+	break;
+      }
+      default: {
+	throw std::logic_error("Invalid orderCategory set by user.");
+        }
+    }
+  
+}
+
 OrderbookLevelInfos OrderBook::GetOrderInfos() const {
  // create and return snapshot of all levels of a orderbook
       // can return K levels of orderbook to keep it simple.
@@ -199,3 +229,4 @@ OrderbookLevelInfos OrderBook::GetOrderInfos() const {
       }
       return OrderbookLevelInfos{bidsSnapshot, asksSnapshot};
 }
+

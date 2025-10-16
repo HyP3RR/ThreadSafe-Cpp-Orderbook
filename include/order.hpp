@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <memory>
 #include <list>
-
-
+#include <future>
+#include "trades.hpp"
 
 
 
@@ -88,3 +88,35 @@ public:
 
 
 
+class ClientOrder {
+public:
+  ClientOrder() {}
+  ClientOrder(OrderId orderid, OrderCategory category, OrderType type, Price price, Quantity quantity, Side side, std::promise<Trades>&& q) : orderId_(orderid), category_(category), type_(type), price_(price), quantity_(quantity), side_(side),returned_trades(std::move(q)) {}
+  OrderId GetOrderId() const { return orderId_; }
+  OrderCategory GetOrderCategory() const { return category_; }
+  OrderType GetOrderType() const  { return type_; }
+  Price GetPrice() const  { return price_; }
+  Quantity GetQuantity()const { return quantity_; }
+  Side GetSide() const {return side_;}
+  void returnPromise(const Trades& trades) {returned_trades.set_value(trades);}
+  OrderPointer ClientToNewOrder() {
+    if (category_ != OrderCategory::NewOrder)
+      throw std::logic_error("Cannot convert to new order");
+    if (type_ == OrderType::MarketOrder) {
+      return std::make_shared<Order>(orderId_,quantity_,side_);
+    } else  {
+      return std::make_shared<Order>(orderId_, price_, quantity_, side_, type_);
+      }
+  }
+  
+private:
+  OrderId orderId_;
+  OrderCategory category_;
+  OrderType type_;
+  Price price_;
+  Quantity quantity_;
+  Side side_;
+  std::promise<Trades> returned_trades; //set trades inside this.
+};
+
+using ClientOrderPointer = std::shared_ptr<ClientOrder>;

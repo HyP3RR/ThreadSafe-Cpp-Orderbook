@@ -65,7 +65,7 @@ public:
   Trades ModifyOrder(OrderModify order);
 
   std::size_t Size() const; //total orders_
-  
+  void ProcessClientOrder(ClientOrderPointer order);
   OrderbookLevelInfos GetOrderInfos() const;
 };
 
